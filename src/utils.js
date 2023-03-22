@@ -315,6 +315,7 @@ export const calculteResult = (
   longitude,
   longitudeHemisphere
 ) => {
+  let result = []
   if (latitudeHemisphere.toUpperCase() === "S") latitude *= -1 * deg;
   else latitude *= deg;
 
@@ -459,7 +460,7 @@ export const calculteResult = (
   }
 
   /*---------Routine for hr_lines-----------*/
-  // console.log("hr dh1 dh2 y1 y2 rads start_ang end_ang");
+  console.log("hr dh1 dh2 y1 y2 rads start_ang end_ang");
   dh1 = RADIUS * Math.tan(latitude);
 
   for (let hr = 6; hr < 12; ++hr) {
@@ -520,6 +521,17 @@ export const calculteResult = (
 
     start_ang *= rad;
     end_ang *= rad;
+
+    result.push([
+      hr.toFixed(2),
+      dh1.toFixed(2),
+      dh2.toFixed(2),
+      y1.toFixed(2),
+      y2.toFixed(2),
+      rads.toFixed(2),
+      start_ang.toFixed(2),
+      end_ang.toFixed(2)
+    ]);
 
     console.log(
       hr.toFixed(2),
@@ -597,5 +609,5 @@ export const calculteResult = (
   // fclose(fpt);
 
   //Return a json to display in the UI
-  return {};
+  return result;
 };
