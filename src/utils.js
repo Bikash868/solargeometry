@@ -1,31 +1,19 @@
-const days = [28, 59, 80, 105, 135, 173, 356];
-const days2 = [319, 288, 266, 242, 211, 173, 356];
-const deg = Math.PI / 180;
-const rad = 180 / Math.PI;
-const RADIUS = 100;
-const pi = Math.PI;
-const error = 0.000001;
-const lh = [3, 87, 95, 116, 124, 222, 230, 251, 259, 266, 274, 351, 356, 361];
-const STD_LONG = 82.5;
-const daytab = [0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-const name_mnts = [
-  "Illegal Month",
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import {
+  days,
+  days2,
+  deg,
+  rad,
+  RADIUS,
+  pi,
+  error,
+  lh,
+  STD_LONG,
+  daytab,
+  name_mnts,
+} from "./constants";
 
 let month, day;
-let alt, azm, srt, sra, hra;
+let alt, azm, srt=0, sra=0, hra=0;
 let rads;
 let start_ang, end_ang;
 let x1, y1, x2, y2, dh1, dh2, r1, hr;
@@ -33,44 +21,46 @@ let i;
 let Declination;
 let Hemisphere, Latitude, Longitude;
 //Adding util functions for calculteResult COMMON.C
-const d = {};
-d[3] = d[344] = -22.83;
-d[10] = d[337] = -22;
-d[17] = d[330] = -20.83;
-d[24] = d[323] = -19.33;
-d[31] = d[316] = -17.5;
-d[38] = d[309] = -15.5;
-d[45] = d[302] = -13.25;
-d[52] = d[295] = -10.83;
-d[59] = d[288] = -8.25;
-d[66] = d[281] = -5.58;
-d[73] = d[274] = -2.83;
-d[80] = d[266] = 0; /*21st March and 23rd September*/
-d[87] = d[259] = 2.83;
-d[95] = d[251] = 5.92;
-d[102] = d[244] = 8.5;
-d[109] = d[237] = 11;
-d[116] = d[230] = 13.33;
-d[124] = d[222] = 15.75;
-d[131] = d[215] = 17.67;
-d[138] = d[208] = 19.42;
-d[145] = d[201] = 20.83;
-d[152] = d[194] = 21.92;
-d[159] = d[187] = 22.75;
-d[166] = d[180] = 23.25;
-d[173] = 23.45; /*22nd June*/
-d[361] = d[351] = -23.33;
-d[356] = -23.45;
 
 let solarconstant;
 
 function decl(n) {
   let i, j, k, low, high, code;
   let step = 7;
+  let d = {};
+  d[3] = d[344] = -22.83;
+  d[10] = d[337] = -22;
+  d[17] = d[330] = -20.83;
+  d[24] = d[323] = -19.33;
+  d[31] = d[316] = -17.5;
+  d[38] = d[309] = -15.5;
+  d[45] = d[302] = -13.25;
+  d[52] = d[295] = -10.83;
+  d[59] = d[288] = -8.25;
+  d[66] = d[281] = -5.58;
+  d[73] = d[274] = -2.83;
+  d[80] = d[266] = 0; /*21st March and 23rd September*/
+  d[87] = d[259] = 2.83;
+  d[95] = d[251] = 5.92;
+  d[102] = d[244] = 8.5;
+  d[109] = d[237] = 11;
+  d[116] = d[230] = 13.33;
+  d[124] = d[222] = 15.75;
+  d[131] = d[215] = 17.67;
+  d[138] = d[208] = 19.42;
+  d[145] = d[201] = 20.83;
+  d[152] = d[194] = 21.92;
+  d[159] = d[187] = 22.75;
+  d[166] = d[180] = 23.25;
+  d[173] = 23.45; /*22nd June*/
+  d[361] = d[351] = -23.33;
+  d[356] = -23.45;
 
   if (n === 1 || n === 2) code = 1;
   else if (n > 361 && n < 366) code = 2;
   else code = 3;
+
+  // console.log("n code:", n, code);
 
   switch (code) {
     case 1:
@@ -85,12 +75,20 @@ function decl(n) {
         else if (n > lh[i] && n < lh[i + 1]) {
           low = lh[i];
           high = lh[i + 1];
+          // console.log("low high:", low, high);
           if (high - low <= 8) step = high - low;
           for (j = low; j <= high; j += step) {
             k = j + step;
-            if (n == k) return d[n];
-            else if (n > j && n < k)
-              return (d[n] = d[k] - ((d[k] - d[j]) / step) * (k - n));
+            if (n === k) {
+              // console.log("n==k d[n]:", d[n]);
+              return d[n];
+            } else if (n > j && n < k) {
+              d[n] = d[k] - ((d[k] - d[j]) / step) * (k - n);
+              // console.log("d[k] k n", d[k], k, n);
+              // console.log("d[j] j", d[j], j);
+              // console.log("line 80 d[n]", step);
+              return d[n];
+            }
           }
         }
       }
@@ -103,9 +101,12 @@ function decl(n) {
 
 /*-----------Rise function----------*/
 function rise(srt1, sra1) {
-    srt = srt1
-    sra = sra1
-  let code, rtime, azm;
+  srt = srt1;
+  sra = sra1;
+  // console.log("  in rise getting: srt=%f sra=%f\n",srt1,sra1);
+  // console.log("  Declination Latitude:",Declination,Latitude);
+  // console.log("  Hemisphere:",Hemisphere)
+  let code, rtime=0, azm=0;
   rtime = Math.tan(Latitude) * Math.tan(Declination);
   if (rtime >= -1.0 && rtime <= 1.0) code = 1;
   if (rtime > 1.0) code = 2;
@@ -138,6 +139,7 @@ function rise(srt1, sra1) {
     default:
       break;
   }
+  // console.log("  in rise assigning: srt=%f sra=%f\n",rtime,azm);
   srt = rtime;
   sra = azm;
   return;
@@ -310,6 +312,7 @@ export const calculteResult = (
 
   Hemisphere = latitudeHemisphere;
   Longitude = longitude;
+  Latitude = latitude;
 
   //STARTING A FILE PTR FOR DRAWING THE GRAPH
   //   strcpy(cityfile, city);
@@ -320,9 +323,9 @@ export const calculteResult = (
 
   for (alt = -10; alt < 90; alt += 10) {
     if (alt < 0) {
-        rads = RADIUS * 1.05;
+      rads = RADIUS * 1.05;
     } else {
-        rads = RADIUS * Math.tan((Math.PI / 2 - alt * deg) / 2.0);
+      rads = RADIUS * Math.tan((Math.PI / 2 - alt * deg) / 2.0);
     }
 
     // console.log("fpt","0");
@@ -380,8 +383,11 @@ export const calculteResult = (
 
   for (i = 0; i < days.length; ++i) {
     Declination = decl(days[i]);
+    // console.log("days[i] Declination", days[i], Declination);
     Declination *= deg;
+    // console.log("passing: i srt, sra:", i, srt, sra)
     rise(srt, sra);
+    // console.log("i srt, sra:", i, srt, sra)
     x1 = RADIUS * Math.sin(sra);
     y1 = RADIUS * Math.cos(sra);
 
