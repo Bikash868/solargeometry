@@ -12,8 +12,13 @@ import {
   name_mnts,
 } from "./constants";
 
-let month, day;
-let alt, azm, srt=0, sra=0, hra=0;
+let month = 0,
+  day = 0;
+let alt,
+  azm,
+  srt = 0,
+  sra = 0,
+  hra = 0;
 let rads;
 let start_ang, end_ang;
 let x1, y1, x2, y2, dh1, dh2, r1, hr;
@@ -106,7 +111,9 @@ function rise(srt1, sra1) {
   // console.log("  in rise getting: srt=%f sra=%f\n",srt1,sra1);
   // console.log("  Declination Latitude:",Declination,Latitude);
   // console.log("  Hemisphere:",Hemisphere)
-  let code, rtime=0, azm=0;
+  let code,
+    rtime = 0,
+    azm = 0;
   rtime = Math.tan(Latitude) * Math.tan(Declination);
   if (rtime >= -1.0 && rtime <= 1.0) code = 1;
   if (rtime > 1.0) code = 2;
@@ -146,10 +153,10 @@ function rise(srt1, sra1) {
 }
 
 /*--------------Position Function----------*/
-function position(hr, alt, azm) {
+function position(hr, alt1, azm1) {
   let noon;
   let hra, azmt, altd;
-
+  // console.log(" in position before op: azm alt Hemisphere\n",azm,alt,Hemisphere)
   noon = Math.tan(Declination) / Math.tan(Latitude);
   hra = (12.0 - hr) * 15.0 * deg;
   /*Find AZM & ALT */
@@ -178,6 +185,7 @@ function position(hr, alt, azm) {
     );
     if (hr > 12) azmt = 2 * pi - azmt;
   }
+  // console.log(" in position: azmt altd\n",azmt,altd)
 
   azm = azmt;
   alt = altd;
@@ -287,11 +295,11 @@ function fnctyearday(month, day) {
   return day;
 }
 
-function fnctmonday(yearday, pmonth, pday) {
+function fnctmonday(yearday, pmonth1, pda1) {
   let i;
   for (i = 1; yearday > daytab[i]; i++) yearday -= daytab[i];
-  pmonth = i;
-  pday = yearday;
+  month = i;
+  day = yearday;
   return;
 }
 
@@ -390,8 +398,9 @@ export const calculteResult = (
     // console.log("i srt, sra:", i, srt, sra)
     x1 = RADIUS * Math.sin(sra);
     y1 = RADIUS * Math.cos(sra);
-
+    // console.log("calling fnctmonday days[i] month day",days[i], month, day)
     fnctmonday(days[i], month, day);
+    // console.log("calling fnctmonday days[i] month day\n",days[i], month, day)
 
     if (Math.sin(Latitude) + Math.sin(Declination)) {
       rads =
@@ -450,16 +459,19 @@ export const calculteResult = (
   }
 
   /*---------Routine for hr_lines-----------*/
-  console.log("hr dh1 dh2 y1 y2 rads start_ang end_ang");
+  // console.log("hr dh1 dh2 y1 y2 rads start_ang end_ang");
   dh1 = RADIUS * Math.tan(latitude);
 
-  for (hr = 6; hr < 12; ++hr) {
+  for (let hr = 6; hr < 12; ++hr) {
     hra = deg * (12 - hr) * 15;
     dh2 = RADIUS / (Math.cos(Latitude) * Math.tan(hra));
     rads = RADIUS / (Math.cos(Latitude) * Math.sin(hra));
 
     Declination = 23.45 * deg;
+    // console.log("hra dh2 rads Declination Latitude",hra, dh2, rads,Declination,Latitude);
+    // console.log("before calling position: hr=%f alt=%f azm=%f",hr, alt, azm);
     position(hr, alt, azm);
+    // console.log("before calling position: hr=%f alt=%f azm=%f",hr, alt, azm);
     r1 = RADIUS * Math.tan((pi / 2 - alt) / 2);
     x1 = r1 * Math.sin(azm);
     y1 = r1 * Math.cos(azm);
@@ -481,7 +493,7 @@ export const calculteResult = (
       if (y2 > dh1) start_ang *= -1;
     } else start_ang = Math.acos(RADIUS / rads);
 
-    if (longitudeHemisphere.toUpperCase() == "S" && hr == 6) {
+    if (longitudeHemisphere.toUpperCase() === "S" && hr === 6) {
       Declination = -23.45 * deg;
       position(hr, alt, azm);
       r1 = RADIUS * Math.tan((pi / 2 - alt) / 2);
